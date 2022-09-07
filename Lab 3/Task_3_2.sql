@@ -1,0 +1,52 @@
+USE HospitalCopy
+
+UPDATE Manager
+SET Name = 'Name'
+WHERE ManagerID = 1
+
+--Dirty read
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+
+BEGIN TRAN
+	SELECT *
+	FROM Manager
+	WHERE ManagerID < 3
+
+	COMMIT TRAN
+
+
+-- Non-Repeatable Read
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+
+BEGIN TRAN
+	UPDATE Manager
+	SET Name = 'Name_T2'
+	WHERE ManagerID = 1
+
+	COMMIT TRAN
+
+-- Phantom Read
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ
+
+BEGIN TRAN
+	INSERT INTO Nurse(Name, CNP, DeptID, SuperviserID)
+	VALUES ('Nume Nou', '66775426662550', 1, 1)
+
+	COMMIT TRAN
+
+
+--Deadlock
+
+BEGIN TRAN
+	UPDATE Manager
+	SET Name = 'Name_T2_1'
+	WHERE ManagerID = 2
+
+	UPDATE Manager
+	SET Name = 'Name_T2_2'
+	WHERE ManagerID = 1
+	
+	COMMIT TRAN
+
+-- Solution:
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
